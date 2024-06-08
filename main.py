@@ -39,16 +39,39 @@ def generate_random_samples_poisson():
     return samples
 
 
+# Calcula estadísticas descriptivas para los datos proporcionados.
+def calculate_statistics(data):
+    median = np.median(data)
+    mode_value = mode(data)[0]
+    mean = np.mean(data)
+    variance = np.var(data)
+    return median, mode_value, mean, variance
+
+
+# Añade un cuadro de texto con estadísticas a un gráfico.
+def add_statistics_text(ax, statistics):
+    median, mode_value, mean, variance = statistics
+    text_str = '\n'.join((
+        f'Mediana: {median:.2f}',
+        f'Moda: {mode_value:.2f}',
+        f'Media: {mean:.2f}',
+        f'Varianza: {variance:.2f}'))
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    ax.text(0.05, 0.95, text_str, transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props)
+
+
 # Genera un diagrama de cajas a partir de las muestras obtenidas.
 def generate_box_diagram(samples, distribution_type):
     fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     axes = axes.flatten()
 
     for i, size in enumerate(sizes):
-        axes[i].boxplot(samples[size])
-        axes[i].set_title(
-            f'Distribución {distribution_type} con tamaño = {size}'
-        )
+        ax = axes[i]
+        ax.boxplot(samples[size])
+        ax.set_title(f'Distribución {distribution_type} con tamaño = {size}')
+        statistics = calculate_statistics(samples[size])
+        add_statistics_text(ax, statistics)
 
     plt.tight_layout()
     plt.show()
@@ -60,25 +83,14 @@ def generate_histogram(samples, distribution_type):
     axes = axes.flatten()
 
     for i, size in enumerate(sizes):
-        axes[i].hist(samples[size], bins=15)
-        axes[i].set_title(
-            f'Distribución {distribution_type} con tamaño = {size}'
-        )
+        ax = axes[i]
+        ax.hist(samples[size], bins=15)
+        ax.set_title(f'Distribución {distribution_type} con tamaño = {size}')
+        statistics = calculate_statistics(samples[size])
+        add_statistics_text(ax, statistics)
 
     plt.tight_layout()
     plt.show()
-
-
-# Calcula y muestra en pantalla las diferentes estadísticas requeridas;
-# la mediana, moda, media empírica y varianza empírica.
-def calculate_statistics(samples):
-    for size in sizes:
-        sample = samples[size]
-        print(f'Para la muestra de tamaño {size}:')
-        print(f' - Mediana: {np.median(sample)}')
-        print(f' - Moda: {mode(sample)[0]}')
-        print(f' - Media empírica: {np.mean(sample)}')
-        print(f' - Varianza empírica: {np.var(sample)}')
 
 
 def main():
@@ -86,19 +98,16 @@ def main():
     samples_binom = generate_random_samples_binom()
     generate_box_diagram(samples_binom, 'Binomial')
     generate_histogram(samples_binom, 'Binomial')
-    calculate_statistics(samples_binom)
     
     # Ejercicio 2
     samples_geom = generate_random_samples_geom()
     generate_box_diagram(samples_geom, 'Geométrica')
     generate_histogram(samples_geom, 'Geométrica')
-    calculate_statistics(samples_geom)
     
     # Ejercicio 3
     samples_poisson = generate_random_samples_poisson()
     generate_box_diagram(samples_poisson, 'Poisson')
     generate_histogram(samples_poisson, 'Poisson')
-    calculate_statistics(samples_poisson)
 
 
 if __name__ == "__main__":
