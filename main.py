@@ -17,6 +17,25 @@ geom_dist = geom(pgeom)
 L = 30
 poisson_dist = poisson(L)
 
+
+# Calcula las estadisticas esperadas de cualquiera de los tres tipos de
+# distribuciones presentadas.
+def calculate_expected_statistics(distribution_name):
+    match distribution_name:
+        case "Binom":
+            binom_expected_value = binom_dist.mean()
+            binom_theoretical_variance = binom_dist.var()
+            return binom_expected_value, binom_theoretical_variance
+        case "Geom":
+            geom_expected_value = geom_dist.mean()
+            geom_theoretical_variance = geom_dist.var()
+            return geom_expected_value, geom_theoretical_variance
+        case "Poisson":
+            poisson_expected_value = poisson_dist.mean()
+            poisson_theoretical_variance = poisson_dist.var()
+            return poisson_expected_value, poisson_theoretical_variance
+
+
 # Genera muestras aleatorias con distribución binomial.
 def generate_random_samples_binom():
     samples = {}
@@ -42,43 +61,53 @@ def generate_random_samples_poisson():
 
 
 # Calcula estadísticas descriptivas para los datos proporcionados.
-def calculate_statistics(data, distribution_type):
+def calculate_statistics(data):
     median = np.median(data)
     mode_value = mode(data)[0]
     mean = np.mean(data)
     variance = np.var(data)
+    return median, mode_value, mean, variance
 
-    calculation_functions = {
-        'Binomial': calculate_statistics_binom,
-        'Geométrica': calculate_statistics_geom,
-        'Poisson': calculate_statistics_poisson
-    }
 
-    if distribution_type in calculation_functions:
-        expected_value, theoretical_variance = calculation_functions[distribution_type]()
-    else:
-        expected_value, theoretical_variance = None, None
+# Genera un diagrama de cajas a partir de las muestras obtenidas.
+def generate_box_diagram(samples, distribution_name):
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    axes = axes.flatten()
 
-    return median, mode_value, mean, variance, expected_value, theoretical_variance
+    for i, size in enumerate(sizes):
+        ax = axes[i]
+        ax.boxplot(samples[size])
+        ax.set_title(f'Distribución {distribution_name} con tamaño = {size}')
+        statistics = calculate_statistics(samples[size])
+        expected_statistics = calculate_expected_statistics(distribution_name)
+        add_statistics_text(ax, statistics, expected_statistics)
 
-def calculate_statistics_binom():
-    binom_expected_value = binom_dist.mean()
-    binom_theoretical_variance = binom_dist.var()
-    return binom_expected_value, binom_theoretical_variance
+    plt.tight_layout()
+    plt.show()
 
-def calculate_statistics_geom():
-    geom_expected_value = geom_dist.mean()
-    geom_theoretical_variance = geom_dist.var()
-    return geom_expected_value, geom_theoretical_variance
 
-def calculate_statistics_poisson():
-    poisson_expected_value = poisson_dist.mean()
-    poisson_theoretical_variance = poisson_dist.var()
-    return poisson_expected_value, poisson_theoretical_variance
+# Genera un histograma a partir de las muestras obtenidas.
+def generate_histogram(samples, distribution_name):
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    axes = axes.flatten()
+
+    for i, size in enumerate(sizes):
+        ax = axes[i]
+        ax.hist(samples[size], bins=15)
+        ax.set_title(f'Distribución {distribution_name} con tamaño = {size}')
+        statistics = calculate_statistics(samples[size])
+        expected_statistics = calculate_expected_statistics(distribution_name)
+        add_statistics_text(ax, statistics, expected_statistics)
+
+    plt.tight_layout()
+    plt.show()
+
 
 # Añade un cuadro de texto con estadísticas a un gráfico.
-def add_statistics_text(ax, statistics):
-    median, mode_value, mean, variance, expected_value, theoretical_variance = statistics
+def add_statistics_text(ax, statistics, expected_statistics):
+    median, mode_value, mean, variance = statistics
+    expected_value, theoretical_variance = expected_statistics
+
     text_str = '\n'.join((
         f'Mediana: {median:.2f}',
         f'Moda: {mode_value:.2f}',
@@ -91,53 +120,21 @@ def add_statistics_text(ax, statistics):
             verticalalignment='top', bbox=props)
 
 
-# Genera un diagrama de cajas a partir de las muestras obtenidas.
-def generate_box_diagram(samples, distribution_type):
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-    axes = axes.flatten()
-
-    for i, size in enumerate(sizes):
-        ax = axes[i]
-        ax.boxplot(samples[size])
-        ax.set_title(f'Distribución {distribution_type} con tamaño = {size}')
-        statistics = calculate_statistics(samples[size], distribution_type)
-        add_statistics_text(ax, statistics)
-
-    plt.tight_layout()
-    plt.show()
-
-
-# Genera un histograma a partir de las muestras obtenidas.
-def generate_histogram(samples, distribution_type):
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-    axes = axes.flatten()
-
-    for i, size in enumerate(sizes):
-        ax = axes[i]
-        ax.hist(samples[size], bins=15)
-        ax.set_title(f'Distribución {distribution_type} con tamaño = {size}')
-        statistics = calculate_statistics(samples[size], distribution_type)
-        add_statistics_text(ax, statistics)
-
-    plt.tight_layout()
-    plt.show()
-
-
 def main():
     # Ejercicio 1
     samples_binom = generate_random_samples_binom()
-    generate_box_diagram(samples_binom, 'Binomial')
-    generate_histogram(samples_binom, 'Binomial')
+    generate_box_diagram(samples_binom, "Binom")
+    generate_histogram(samples_binom, "Binom")
 
     # Ejercicio 2
     samples_geom = generate_random_samples_geom()
-    generate_box_diagram(samples_geom, 'Geométrica')
-    generate_histogram(samples_geom, 'Geométrica')
+    generate_box_diagram(samples_geom, "Geom")
+    generate_histogram(samples_geom, "Geom")
 
     # Ejercicio 3
     samples_poisson = generate_random_samples_poisson()
-    generate_box_diagram(samples_poisson, 'Poisson')
-    generate_histogram(samples_poisson, 'Poisson')
+    generate_box_diagram(samples_poisson, "Poisson")
+    generate_histogram(samples_poisson, "Poisson")
 
 
 if __name__ == "__main__":
